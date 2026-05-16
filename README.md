@@ -38,11 +38,13 @@ bin/server
 test/ruby_at_scale/cache_stampede_test
 ```
 
-## Requirements
+## Dependencies
 
-- Ruby
-- PostgreSQL
-- Redis
+| Dependency | Purpose |
+|------------|---------|
+| PostgreSQL | Simulates expensive database queries |
+| Redis | Cache store and distributed lock backend |
+| Ruby | 3.0+ recommended |
 
 ## ⚠️ Note
 
