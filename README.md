@@ -53,4 +53,4 @@ Tests delete specific Redis keys before running. They do **not** call `flushdb` 
 
 ## Blog
 
-For a full technical deep-dive on the cache stampede problem, solutions, and tradeoffs: [Thundering Herd: The Problem That Kills Ruby Apps at Scale](https://wh1le.com/ruby-at-scale-thundering-herd)
+For a full technical deep-dive on the cache stampede problem, solutions, and tradeoffs: [Thundering Herd: The Problem That Kills Ruby Apps at Scale](https://wh1le.com/ruby-at-scale-cache-stampede)
