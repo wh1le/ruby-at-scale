@@ -38,7 +38,7 @@ class Solution
 
     return cached unless cached.to_s.empty?
 
-    if lock_table(lock_key)
+    if lock!(lock_key)
       result = yield
       redis.set(key, result, ex: ttl)
       redis.del(lock_key)
@@ -67,7 +67,7 @@ class Solution
     Time.now + LOCK_TTL
   end
 
-  def lock_table(lock_key)
+  def lock!(lock_key)
     redis.set(lock_key, true, nx: true, ex: LOCK_TTL)
   end
 
