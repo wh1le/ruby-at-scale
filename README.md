@@ -50,3 +50,7 @@ test/ruby_at_scale/cache_stampede_test
 ## ⚠️ Note
 
 Tests delete specific Redis keys before running. They do **not** call `flushdb` - your other Redis data is safe but make sure you don't run it on critical infra.
+
+## Blog
+
+For a full technical deep-dive on the cache stampede problem, solutions, and tradeoffs: [Thundering Herd: The Problem That Kills Ruby Apps at Scale](https://wh1le.com/ruby-at-scale-thundering-herd)
