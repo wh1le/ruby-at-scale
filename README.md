@@ -35,6 +35,7 @@ bin/server
 ## Test
 
 ```bash
+# Cache Stampede
 test/ruby_at_scale/cache_stampede_test
 ```
 
