@@ -1,0 +1,5 @@
+.gems/
+.direnv/
+.env
+*.log
+tmp/

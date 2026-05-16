@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+cd "$(git rev-parse --show-toplevel)"
+
+ruby -r redis -e 'r = Redis.new; r.del("expensive_report", "expensive_report:lock", "stampede:query_count")'
+
+echo "Starting Puma..."
+bundle exec puma -C config/puma.rb &
+PUMA_PID=$!
+sleep 3
+
+echo ""
+echo "=== Firing 1000 concurrent requests ==="
+for i in $(seq 1 1000); do
+  curl -s http://localhost:9292/report > /dev/null &
+done
+wait $(jobs -p | grep -v $PUMA_PID)
+
+echo ""
+echo "=== Verification ==="
+QUERY_COUNT=$(ruby -r redis -e 'puts Redis.new.get("stampede:query_count") || 0')
+echo "DB queries executed: $QUERY_COUNT"
+echo "Expected: 1"
+
+if [ "$QUERY_COUNT" -eq "1" ]; then
+  echo "✓ Cache stampede prevented"
+else
+  echo "✗ STAMPEDE: $QUERY_COUNT queries hit the DB"
+fi
+
+kill $PUMA_PID 2>/dev/null

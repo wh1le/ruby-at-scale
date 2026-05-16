@@ -1,0 +1,6 @@
+development:
+  adapter: postgresql
+  host: localhost
+  database: ruby_at_scale
+  username: <%= ENV.fetch('PGUSER', 'postgres') %>
+  password: <%= ENV.fetch('PGPASSWORD', '') %>
