@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+cd "$(git rev-parse --show-toplevel)" || exit
+
+export RACK_ENV="${RACK_ENV:-production}"
+
+HELPERS_DIR="spec/system/bin/helpers"
+source "$HELPERS_DIR/cli"
+source "$HELPERS_DIR/redis"
+
+MAX_REQUESTS=10
+TOTAL_REQUESTS=3000
+CODES="tmp/rate_limit_codes"
+PROGRESS="tmp/progress"
+
+cleanup_port
+trap 'cleanup_port' EXIT
+
+header "Rate Limiter Load Test"
+info "Max allowed:" "$MAX_REQUESTS requests/window"
+info "Total requests:" "$TOTAL_REQUESTS"
+info "Workers:" "4 (Puma)"
+info "Threads:" "5 per worker"
+echo ""
+
+redis_flush_keys "rate_limit:*"
+
+warn "Starting Puma..."
+bundle exec puma -C config/puma.rb > /tmp/puma_test.log 2>&1 &
+PUMA_PID=$!
+sleep 3
+success "Puma running (PID: $PUMA_PID)"
+echo ""
+
+mkdir -p tmp
+: > "$CODES"
+: > "$PROGRESS"
+
+warn "Firing $TOTAL_REQUESTS concurrent requests..."
+for _ in $(seq 1 $TOTAL_REQUESTS); do
+  { curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:9292/limited >> "$CODES"; echo . >> "$PROGRESS"; } &
+done
+
+while true; do
+  DONE=$(wc -l < "$PROGRESS" 2>/dev/null | tr -d ' ')
+  printf "\r  Progress: %d/%d" "$DONE" "$TOTAL_REQUESTS"
+  [ "$DONE" -ge "$TOTAL_REQUESTS" ] && break
+  sleep 0.2
+done
+echo ""
+success "$TOTAL_REQUESTS requests completed"
+
+ALLOWED=$(grep -c "200" "$CODES")
+DENIED=$(grep -c "429" "$CODES")
+rm -f "$CODES" "$PROGRESS"
+
+header "Results"
+stat "Allowed (200):" "$ALLOWED"
+stat "Denied  (429):" "$DENIED"
+stat "Expected max:" "$MAX_REQUESTS"
+echo ""
+
+if [ "$ALLOWED" -gt "$MAX_REQUESTS" ]; then
+  error "RACE CONDITION: $ALLOWED requests got through (limit: $MAX_REQUESTS)"
+else
+  success "Limit held — only $ALLOWED requests allowed"
+fi
+
+echo ""
+kill $PUMA_PID 2>/dev/null

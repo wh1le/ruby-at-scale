@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+cd "$(git rev-parse --show-toplevel)" || exit
+
+export RACK_ENV="${RACK_ENV:-production}"
+
+HELPERS_DIR="spec/system/bin/helpers"
+source "$HELPERS_DIR/cli"
+source "$HELPERS_DIR/redis"
+
+cleanup_port
+trap 'cleanup_port' EXIT
+
+header "Cache Stampede Test"
+info "Concurrent requests:" "1000"
+info "Expected DB queries:" "1"
+echo ""
+
+redis_flush_keys "expensive_report*"
+redis_flush_keys "stampede:*"
+
+warn "Starting Puma..."
+bundle exec puma -C config/puma.rb > /tmp/puma_test.log 2>&1 &
+PUMA_PID=$!
+sleep 3
+success "Puma running (PID: $PUMA_PID) — log: /tmp/puma_test.log"
+echo ""
+
+fire_requests "http://localhost:9292/report" 1000
+
+header "Results"
+
+QUERY_COUNT=$(redis_get "stampede:query_count")
+stat "DB queries executed:" "$QUERY_COUNT"
+stat "Expected:" "1"
+echo ""
+
+if [ "$QUERY_COUNT" -eq "1" ]; then
+  success "Cache stampede prevented — only 1 query hit the DB"
+else
+  error "STAMPEDE: $QUERY_COUNT queries hit the DB"
+fi
+
+echo ""
+kill $PUMA_PID 2>/dev/null

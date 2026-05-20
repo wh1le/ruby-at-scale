@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+HELPERS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$HELPERS_DIR/colors"
+
+cleanup_port() {
+  local port="${1:-9292}"
+  kill "$(lsof -ti:"$port")" 2>/dev/null || true
+}
+
+header()  { echo -e "\n${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n${BOLD}  $1${NC}\n${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"; }
+success() { echo -e "  ${GREEN}✓ $1${NC}"; }
+error()   { echo -e "  ${RED}✗ $1${NC}"; }
+info()    { echo -e "  ${CYAN}$1${NC}  $2"; }
+warn()    { echo -e "${YELLOW}▶ $1${NC}"; }
+stat()    { echo -e "  $1  ${BOLD}$2${NC}"; }
+
+fire_requests() {
+  local url="$1"
+  local count="$2"
+  local progress="tmp/progress"
+
+  mkdir -p tmp
+  : > "$progress"
+
+  warn "Firing $count concurrent requests..."
+  for _ in $(seq 1 "$count"); do
+    { curl -s "$url" -o /dev/null; echo . >> "$progress"; } &
+  done
+
+  while true; do
+    local done
+    done=$(wc -l < "$progress" 2>/dev/null | tr -d ' ')
+    printf "\r  Progress: %d/%d" "$done" "$count"
+    [ "$done" -ge "$count" ] && break
+    sleep 0.2
+  done
+  echo ""
+  rm -f "$progress"
+  success "$count requests completed"
+}
