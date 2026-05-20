@@ -4,7 +4,7 @@ module RubyAtScale
   module Controllers
     class RateLimitController < ApplicationController
       LIMITER = RubyAtScale::RateLimiter::SlidingWindow.new(
-        redis: Redis.new,
+        redis: RubyAtScale.redis,
         max_requests: 10,
         window_seconds: 60
       )

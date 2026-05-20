@@ -11,6 +11,7 @@ Ruby developers who want to go beyond CRUD and learn how to handle high traffic,
 | Problem | Description | Difficulty |
 |---------|-------------|------------|
 | [Cache Stampede](lib/ruby_at_scale/cache_stampede/) | Prevent 1000 concurrent requests from hammering your DB when cache expires | Medium |
+| [Rate Limiter](lib/ruby_at_scale/rate_limiter/) | Atomic sliding window rate limiting under high concurrency | Medium |
 
 ## How it works
 
@@ -23,7 +24,13 @@ Ruby developers who want to go beyond CRUD and learn how to handle high traffic,
 
 ```bash
 bundle install
-bin/setup
+```
+
+Update `config/database.yml` with your PostgreSQL credentials, then:
+
+```bash
+rake db:create
+rake db:migrate
 ```
 
 ## Run
@@ -35,8 +42,12 @@ bin/server
 ## Test
 
 ```bash
-# Cache Stampede
-test/ruby_at_scale/cache_stampede_test
+# Unit/Integration specs
+rspec --tag ~system
+
+# System tests (interactive, requires running PostgreSQL and Redis)
+spec/system/bin/cache_stampede_test
+spec/system/bin/rate_limiter_test
 ```
 
 ## Dependencies

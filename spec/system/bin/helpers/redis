@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+redis_flush_keys() {
+  ruby -r redis -e "r = Redis.new; r.keys(\"$1\").each { |k| r.del(k) }"
+}
+
+redis_get() {
+  ruby -r redis -e "puts Redis.new.get(\"$1\") || 0"
+}
