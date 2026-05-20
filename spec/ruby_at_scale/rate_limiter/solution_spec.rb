@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe RubyAtScale::RateLimiter::Solution do
-
   let(:redis) { Redis.new }
   let(:client_id) { "test:client:#{SecureRandom.hex(4)}" }
 

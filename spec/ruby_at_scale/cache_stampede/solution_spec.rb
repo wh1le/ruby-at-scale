@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe RubyAtScale::CacheStampede::Solution do
-
   let(:key) { "test:cache:#{SecureRandom.hex(4)}" }
   let(:redis) { Redis.new }
 
