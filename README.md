@@ -1,5 +1,7 @@
 # Ruby at Scale
 
+[![CI](https://github.com/wh1le/ruby-at-scale/actions/workflows/ci.yml/badge.svg)](https://github.com/wh1le/ruby-at-scale/actions/workflows/ci.yml)
+
 Real-world concurrency and performance problems you'll face running Ruby in production with hands-on challenges and solutions.
 
 ## Who is this for?
@@ -56,7 +58,7 @@ spec/system/bin/rate_limiter_test
 |------------|---------|
 | PostgreSQL | Simulates expensive database queries |
 | Redis | Cache store and distributed lock backend |
-| Ruby | 3.0+ recommended |
+| Ruby | 4.0+ |
 
 ## ⚠️ Note
 
