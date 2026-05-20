@@ -33,13 +33,23 @@ module RubyAtScale
       end
 
       def allow?(client_id)
-        now = Time.now.to_f
-        result = @redis.eval(
+        query_redis(client_id) == 1
+      end
+
+      private
+
+      def query_redis(client_id)
+        now = now_timestamp
+
+        @redis.eval(
           SCRIPT,
           keys: ["#{KEY_PREFIX}:#{client_id}"],
           argv: [@window_seconds, @max_requests, now, "#{now}:#{rand}"]
         )
-        result == 1
+      end
+
+      def now_timestamp
+        Time.now.to_f
       end
     end
   end
