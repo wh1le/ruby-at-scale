@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/wh1le/ruby-at-scale/actions/workflows/ci.yml/badge.svg)](https://github.com/wh1le/ruby-at-scale/actions/workflows/ci.yml)
 
+![Sliding Window Rate Limiter](assets/ruby-at-scale-rate-limit-sliding-window.png)
+
 Real-world concurrency and performance problems you'll face running Ruby in production with hands-on challenges and solutions.
 
 ## Who is this for?
