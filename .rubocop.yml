@@ -1,11 +1,21 @@
 AllCops:
   NewCops: enable
+  Exclude:
+    - '.gems/**/*'
+    - '.direnv/**/*'
+    - 'vendor/**/*'
+    - '.bundle/**/*'
+
 
 Style/Documentation:
   Enabled: false
 
 Metrics/MethodLength:
   Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
 
 Lint/UnusedMethodArgument:
   Enabled: false

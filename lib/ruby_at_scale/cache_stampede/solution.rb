@@ -24,54 +24,58 @@ require 'redis'
 #   - Lock should timeout after 5 seconds (in case builder crashes)
 #   - Must be safe under 100 concurrent processes
 
-class Solution
-  LOCK_TTL = 15
-  POLL_INTERVAL = 0.05
+module RubyAtScale
+  module CacheStampede
+    class Solution
+      LOCK_TTL = 15
+      POLL_INTERVAL = 0.05
 
-  def initialize(redis = Redis.new)
-    @redis = redis
-  end
+      def initialize(redis = Redis.new)
+        @redis = redis
+      end
 
-  def fetch(key, ttl: 60)
-    cached = cached_value(key)
-    lock_key = "#{key}:lock"
+      def fetch(key, ttl: 60)
+        cached = cached_value(key)
+        lock_key = "#{key}:lock"
 
-    return cached unless cached.to_s.empty?
+        return cached unless cached.to_s.empty?
 
-    if lock!(lock_key)
-      result = yield
-      redis.set(key, result, ex: ttl)
-      redis.del(lock_key)
-      result
-    else
-      await_redis_cache(key)
+        if lock!(lock_key)
+          result = yield
+          redis.set(key, result, ex: ttl)
+          redis.del(lock_key)
+          result
+        else
+          await_redis_cache(key)
+        end
+      end
+
+      private
+
+      attr_reader :redis
+
+      def await_redis_cache(key)
+        deadline = waiting_deadline
+
+        loop do
+          sleep(POLL_INTERVAL)
+          value = redis.get(key)
+          return value if value
+          break if Time.now > deadline
+        end
+      end
+
+      def waiting_deadline
+        Time.now + LOCK_TTL
+      end
+
+      def lock!(lock_key)
+        redis.set(lock_key, true, nx: true, ex: LOCK_TTL)
+      end
+
+      def cached_value(key)
+        redis.get(key)
+      end
     end
-  end
-
-  private
-
-  attr_reader :redis
-
-  def await_redis_cache(key)
-    deadline = waiting_deadline
-
-    loop do
-      sleep(POLL_INTERVAL)
-      value = redis.get(key)
-      return value if value
-      break if Time.now > deadline
-    end
-  end
-
-  def waiting_deadline
-    Time.now + LOCK_TTL
-  end
-
-  def lock!(lock_key)
-    redis.set(lock_key, true, nx: true, ex: LOCK_TTL)
-  end
-
-  def cached_value(key)
-    redis.get(key)
   end
 end

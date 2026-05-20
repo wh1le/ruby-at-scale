@@ -24,17 +24,20 @@ require 'redis'
 #   - Lock should timeout after 5 seconds (in case builder crashes)
 #   - Must be safe under 100 concurrent processes
 
-class Cache
-  LOCK_TTL = 15
-  POLL_INTERVAL = 0.05
+module RubyAtScale
+  module CacheStampede
+    class Cache
+      LOCK_TTL = 15
+      POLL_INTERVAL = 0.05
 
-  def initialize(redis = Redis.new)
-    @redis = redis
-  end
+      def initialize(redis = Redis.new)
+        @redis = redis
+      end
 
-  # Implement this method
-  def fetch(_key, ttl: 60)
-    # Your solution here
-    yield
+      def fetch(_key, ttl: 60)
+        # Your solution here
+        yield
+      end
+    end
   end
 end
